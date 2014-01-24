@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include "../window.h"
-#include "../gl_utility.h"
+#include "../glUtility.h"
 #include "../vector.h"
 #include "../matrix.h"
+#include "../Timer.h"
 #include "../camera.h"
 
 Window window;
@@ -51,12 +52,12 @@ void Render()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, boxIndexBuffer);
 
 	//draw first box
-	Matrix4x4 modelMatrix = Translate(Vector3(-4.f, -1.8f, 0) ) * Scale(Vector3(1.f, 1.f, 1.f));
+	Matrix4x4 modelMatrix = Translate(Vector3(-4, -2, 0) ) * Scale(Vector3(1, 1, 1));
 	glUniformMatrix4fv(modelMatLocation, 1, GL_TRUE, modelMatrix.FloatPtr());
 	glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, 0);
 
 	//draw second box
-	modelMatrix = Translate(Vector3(-5.f, 1.8f, 0) ) * Scale(Vector3(1.5f, 1.5f, 1.5f));
+	modelMatrix = Translate(Vector3(-5, 2, 0) ) * Scale(Vector3(1.5, 1.5, 1.5));
 	glUniformMatrix4fv(modelMatLocation, 1, GL_TRUE, modelMatrix.FloatPtr());
 	glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, 0);
 

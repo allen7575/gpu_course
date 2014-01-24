@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "../window.h"
-#include "../gl_utility.h"
+#include "../glUtility.h"
 #include "../vector.h"
 #include "../matrix.h"
 #include "../Timer.h"
@@ -43,7 +43,7 @@ void InitResources()
 
 }
 
-double frameTime = 16;
+double frameTime = 0;
 double animationTime = 0;
 void Render()
 {

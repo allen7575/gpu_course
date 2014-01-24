@@ -3,7 +3,7 @@
 #include <intrin.h>
 #endif
 
-#include "timer.h"
+#include "Timer.h"
 
 void CycleCount::Sample()
 {

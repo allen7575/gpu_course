@@ -1,5 +1,5 @@
-#ifndef TIMER_H
-#define TIMER_H
+#ifndef __JOG_TIMER_H
+#define __JOG_TIMER_H
 
 typedef unsigned long long u64;
 typedef long long i64;

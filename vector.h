@@ -1,5 +1,5 @@
-#ifndef VECTOR_H
-#define VECTOR_H
+#ifndef __JOG_VECTOR_INCLUDED__
+#define __JOG_VECTOR_INCLUDED__
 #include <algorithm>
 
 class Vector2
@@ -29,7 +29,7 @@ public:
 	Vector2& operator/=(const Vector2& rhs);
 	Vector2& operator/=(const float s);
 
-	bool operator == (const Vector2& rhs) const;
+	bool operator == (const Vector2& rhs);
 	
 	template<class T>
 	void	Evaluate(const T& e);
@@ -183,23 +183,24 @@ inline const Vector2 operator / (const Vector2& v, float s)
 	return Vector2(v.x / s, v.y / s);
 }
 
-inline bool Vector2::operator == (const Vector2& rhs) const
-{
-    return ( (x == rhs.x) && (y == rhs.y));
-}
-
 class Vector3 {
 public:
 	Vector3();
 	explicit Vector3(float* _pVec);
 	explicit Vector3(float _xyz);
 	explicit Vector3(float _x, float _y, float _z);
+	
+	template<class T> 
+	explicit Vector3(const T& e);
 
 	void Set(float x, float y, float z);
 	void Zero(void);
 
 	float operator []  (int i) const;	
 	float& operator [](int i);
+
+	template <class T>
+	Vector3& operator=(const T& e);
 
 	Vector3& operator+=(const Vector3& rhs);	
 	Vector3& operator+=(float s);	
@@ -210,11 +211,14 @@ public:
 	Vector3& operator/=(const Vector3& rhs);
 	Vector3& operator/=(const float s);
 
-	bool operator == (const Vector3& rhs) const;
+	bool operator == (const Vector3& rhs);
 	
 	float SquaredLength() const;
 	float Length() const;
 	void Normalize();	
+
+	template<class T>
+	void Evaluate(const T& e);
 
 	float x;
 	float y;
@@ -235,17 +239,18 @@ inline Vector3::Vector3(float* _pVec)
 	z = _pVec[2];
 }
 
-inline Vector3::Vector3(float _xyz)
-{
-    x = y = z = _xyz;
-}
-
 inline Vector3::Vector3(float _x, float _y, float _z)
 {
 	x = _x;
 	y = _y;
 	z = _z;
 }
+
+template<class T>
+inline  Vector3:: Vector3(const T& e)
+{
+	Evaluate(e);
+}	
 
 inline void Vector3::Set(float _x, float _y, float _z)
 {
@@ -268,6 +273,12 @@ inline float& Vector3::operator [](int i)
 {
 	return (&x)[i];
 }
+
+template <class T> 
+inline Vector3& Vector3::operator=(const T& e)
+{
+	Evaluate(e); return *this;
+}	
 
 inline Vector3 operator-(const Vector3& v)
 {
@@ -341,7 +352,7 @@ inline Vector3& Vector3::operator/=(const float s)
 	return *this;
 }	
 
-inline bool Vector3::operator == (const Vector3& rhs) const
+inline bool Vector3::operator == (const Vector3& rhs)
 {
 	return ( (x == rhs.x) && (y == rhs.y) && (z == rhs.z));
 }
@@ -362,6 +373,13 @@ inline void Vector3::Normalize()
 	x /= length;
 	y /= length;
 	z /= length;
+}
+
+template<class T> inline
+	void Vector3::Evaluate(const T& e){
+		x = e[0];
+		y = e[1];
+		z = e[2];		
 }
 
 inline const Vector3 operator + (const Vector3& a, const Vector3& b)
@@ -444,10 +462,14 @@ public:
 	explicit Vector4(float* _pVec);
 	explicit Vector4(float _xyzw);
 	explicit Vector4(float _x, float _y, float _z, float _w);
+template<class T> 
+	explicit Vector4(const T& e);
 
 	float operator []  (int index) const;	
 	float& operator [](int index);
 
+template <class T>
+	const Vector4& operator=(const T& e);
 	const Vector4& operator+=(const Vector4& rhs);	
 	const Vector4& operator+=(float s);	
 	const Vector4& operator-=(const Vector4& rhs);	
@@ -456,7 +478,7 @@ public:
 	const Vector4& operator*=(const float s);
 	const Vector4& operator/=(const Vector4& rhs);
 	const Vector4& operator/=(const float s);
-	bool operator == (const Vector4& rhs) const;
+	bool operator == (const Vector4& rhs);
 
 	bool  Compare( const Vector4 &a ) const;							// exact compare, no epsilon
 	bool  Compare( const Vector4 &a, const float epsilon ) const;		// compare with epsilon
@@ -464,6 +486,9 @@ public:
 	float SquaredLength() const;
     float Length() const;
 	void  Normalize();	
+
+	template<class T>
+	void  Evaluate(const T& e);
 
 	float x;
 	float y;
@@ -497,6 +522,21 @@ inline Vector4::Vector4(float _x, float _y, float _z, float _w)
 	w = _w;
 }
 
+template<class T> inline
+Vector4::Vector4(const T &e)
+{
+	Evaluate(e);
+}
+
+template<class T> inline
+void Vector4::Evaluate(const T&e)
+{
+	x = e[0];
+	y = e[1];
+	z = e[2];
+	w = e[3];
+}
+
 inline float Vector4::operator [](int index) const
 {
 	return (&x)[index];
@@ -505,6 +545,11 @@ inline float Vector4::operator [](int index) const
 inline float& Vector4::operator [](int index)
 {
 	return (&x)[index];
+}
+
+template<class T> inline const Vector4& Vector4::operator =(const T &e)
+{
+		Evaluate(e); return *this;
 }
 
 inline Vector4 operator-(const Vector4& v)
@@ -661,11 +706,5 @@ inline Vector4 Min(const Vector4& a, const Vector4& b)
 {
 	return Vector4(std::min(a.x, b.x), std::min(a.y, b.y), std::min(a.z, b.z), std::min(a.w, b.w));
 }
-
-inline bool Vector4::operator == (const Vector4& rhs) const
-{
-    return ( (x == rhs.x) && (y == rhs.y) && (z == rhs.z) && (w == rhs.w));
-}
-
 
 #endif
