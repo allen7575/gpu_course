@@ -293,54 +293,54 @@ GLuint CreateProgram(char* vsFilename, char* psFileName)
     return shaderProgram;
 }
 
-GLuint CreateCubeVertexBuffer()
-{
-	GLuint cubeVertexBuffer;
+//GLuint CreateCubeVertexBuffer()
+//{
+//	GLuint cubeVertexBuffer;
+//
+//	MyVertex cube[8];
+//	cube[0].position = Vector3(1, 1, 1);
+//	cube[1].position = Vector3(1, 1, -1);
+//	cube[2].position = Vector3(1, -1, 1);
+//	cube[3].position = Vector3(1, -1, -1);
+//	cube[4].position = Vector3(-1, 1, 1);
+//	cube[5].position = Vector3(-1, 1, -1);
+//	cube[6].position = Vector3(-1, -1, 1);
+//	cube[7].position = Vector3(-1, -1, -1);
+//
+//	for(int i = 0; i < 8; i++)
+//	{
+//		cube[i].color = Vector3(1, 0, 0);
+//	}
+//
+//	glGenBuffers(1, &cubeVertexBuffer);
+//	glBindBuffer(GL_ARRAY_BUFFER, cubeVertexBuffer);
+//	glBufferData(GL_ARRAY_BUFFER, sizeof(cube), cube, GL_STATIC_DRAW);
+//
+//	return cubeVertexBuffer;
+//
+//}
 
-	MyVertex cube[8];
-	cube[0].position = Vector3(1, 1, 1);
-	cube[1].position = Vector3(1, 1, -1);
-	cube[2].position = Vector3(1, -1, 1);
-	cube[3].position = Vector3(1, -1, -1);
-	cube[4].position = Vector3(-1, 1, 1);
-	cube[5].position = Vector3(-1, 1, -1);
-	cube[6].position = Vector3(-1, -1, 1);
-	cube[7].position = Vector3(-1, -1, -1);
-
-	for(int i = 0; i < 8; i++)
-	{
-		cube[i].color = Vector3(1, 1, 1);
-	}
-
-	glGenBuffers(1, &cubeVertexBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, cubeVertexBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(cube), cube, GL_STATIC_DRAW);
-
-	return cubeVertexBuffer;
-
-}
-
-GLuint CreateWireCubeIndexBuffer()
-{
-	GLuint wireCubeIndexBuffer;
-
-	GLuint wireCubeIndices[24] = {0, 2,
-		1, 3,
-		5, 7,
-		4, 6,
-		0, 4,
-		1, 5,
-		3, 7,
-		2, 6,
-		0, 1,
-		4, 5,
-		6, 7,
-		2, 3};
-
-
-	glGenBuffers(1, &wireCubeIndexBuffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, wireCubeIndexBuffer);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(wireCubeIndices), wireCubeIndices, GL_STATIC_DRAW);
-
-	return wireCubeIndexBuffer;
-}
+//GLuint CreateWireCubeIndexBuffer()
+//{
+//	GLuint wireCubeIndexBuffer;
+//
+//	GLuint wireCubeIndices[24] = {0, 2,
+//		1, 3,
+//		5, 7,
+//		4, 6,
+//		0, 4,
+//		1, 5,
+//		3, 7,
+//		2, 6,
+//		0, 1,
+//		4, 5,
+//		6, 7,
+//		2, 3};
+//
+//
+//	glGenBuffers(1, &wireCubeIndexBuffer);
+//	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, wireCubeIndexBuffer);
+//	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(wireCubeIndices), wireCubeIndices, GL_STATIC_DRAW);
+//
+//	return wireCubeIndexBuffer;
+//}

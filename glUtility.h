@@ -6,17 +6,24 @@
 #include "GL/wglext.h"
 #include "vector.h"
 
+//enum {
+//	AXIS_VERTEX,
+//	AXIS_INDEX
+//};
+
 struct MyVertex
 {
     Vector3 position;
     Vector3 color;
 };
 
+//GLuint **allbuffer;
+
 bool InitGL(HWND hwnd, int msaaCount);
 GLuint CompileShader(char* filename, GLuint shaderType);
 GLuint CreateProgram(char* vsFilename, char* psFileName);
 
-GLuint CreateCubeVertexBuffer();
-GLuint CreateWireCubeIndexBuffer();
+//GLuint CreateCubeVertexBuffer();
+//GLuint CreateWireCubeIndexBuffer();
 
 #endif

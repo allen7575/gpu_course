@@ -207,6 +207,8 @@ public:
 
    Matrix4x4  Transpose();
    Matrix4x4& TransposeSelf();
+   //Matrix4x4 Translate();
+   //Matrix4x4 Scale();
 
 private:
    //store in row major...,

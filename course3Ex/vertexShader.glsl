@@ -12,5 +12,6 @@ void main(void)
 {
 	position.z;
 	gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4( position, 1.0);
-	outputColor = cubeColor;
+	//outputColor = cubeColor;
+	outputColor = color;
 }

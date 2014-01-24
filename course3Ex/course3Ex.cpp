@@ -1,17 +1,33 @@
 #include <stdio.h>
 #include "../window.h"
-#include "../gl_utility.h"
+#include "../glUtility.h"
 #include "../vector.h"
 #include "../matrix.h"
 #include "../Timer.h"
 #include "../camera.h"
+
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "../stb_truetype.h"
+
+#include "../glMouseControl.h"
+#include "../glKeyboardControl.h"
+#include "../glCircle.h"
+#include "../glAxis.h"
+#include "../glCube.h"
 
 Window window;
 
 GLuint boxVertexBuffer;
 GLuint boxIndexBuffer;
+
+MyInputListener *inputlistener;
+glMouseControl *mousecontrolptr;
+glKeyboardControl *keyboardcontrol;
+glCircle *circleptr;
+glAxis *axisptr;
+glCube *cubeptr[2];
+
+
 GLuint shaderProgram;
 MyPerspectiveCamera camera;
 
@@ -20,81 +36,6 @@ double frameTime = 16;
 float cameraMoveSpeed = 2.f;
 float cameraTurnSpeed = 1.f;
 
-class MyInputListener : public InputListener
-{
-public:
-    explicit MyInputListener()
-    {
-        forward = false;
-        backward = false;
-        right = false;
-        left = false;
-
-        ClearState();
-        mouseControl =false;
-    }
-
-    virtual void OnMouseMove(const int x, const int y, const int deltaX, const int deltaY)
-    {
-        rx += deltaX;
-        ry += deltaY;
-    }
-
-    virtual void OnMouseButton(const int x, const int y, const MouseButton button, const bool pressed)
-    {
-        if(pressed && button == MOUSE_RIGHT)
-        {
-            mouseControl = true;
-        }
-        else
-        {
-            mouseControl = false;
-        }
-    }
-    virtual void OnMouseWheel(const int x, const int y, const int scroll)
-	{
-		cameraMoveSpeed += scroll;
-		cameraMoveSpeed = std::max(1.f, cameraMoveSpeed );
-	}
-    
-    virtual void OnKey(const unsigned int key, const bool pressed)
-    {
-        if(key == KEY_W)
-        {
-            forward = pressed;
-        }
-        if( key == KEY_S)
-        {
-            backward = pressed;
-        }
-        if( key == KEY_A)
-        {
-            left = pressed;
-        }
-        if(key == KEY_D)
-        {
-            right = pressed;
-        }
-
-    }
-
-    void ClearState()
-    {
-        rx = 0;
-        ry = 0;
-    }
-
-    bool forward;
-    bool backward;
-    bool right;
-    bool left;
-
-    bool mouseControl;
-    float rx;
-    float ry;
-};
-
-MyInputListener* inputListener = NULL;
 
 struct BitmapChar
 {
@@ -106,6 +47,10 @@ struct BitmapChar
 
 BitmapChar attackOnTitan[16];
 BitmapChar attackOnTitanCh[5];
+
+BitmapChar FPS[5];
+const wchar_t* FPSstr = L"000.0";
+
 const wchar_t* attackOnTitanStr = L"Attack on Titan!";
 const wchar_t* AttackOnTitanChStr = L"¶iÀ»ªº¥¨¤H";
 
@@ -115,11 +60,34 @@ void InitResources()
 	//load shader
 	shaderProgram = CreateProgram("vertexShader.glsl", "pixelShader.glsl");
 
-	boxVertexBuffer = CreateCubeVertexBuffer();
-	boxIndexBuffer = CreateWireCubeIndexBuffer();
+	//boxVertexBuffer = CreateCubeVertexBuffer();
+	//boxIndexBuffer = CreateWireCubeIndexBuffer();
+
+	inputlistener = new MyInputListener();
+	SetInputListener(inputlistener);
+
+	mousecontrolptr = new glMouseControl(inputlistener, &camera);
+
+	circleptr = new glCircle();
+	circleptr->Create(&shaderProgram, 2.5);
+
+	axisptr = new glAxis();
+	axisptr->Create(&shaderProgram);
+
+	cubeptr[0] = new glCube();
+	cubeptr[0]->Create(&shaderProgram);
+	cubeptr[0]->Translation(Vector3(-4, -1.8, 0));
+	cubeptr[0]->Scalation(Vector3(1,1,1));
+
+	cubeptr[1] = new glCube();
+	cubeptr[1]->Create(&shaderProgram);
+	cubeptr[1]->Translation(Vector3(-5, 1.8, 0));
+	cubeptr[1]->Scalation(Vector3(1.5,1.5,1.5));
+
+	keyboardcontrol = new glKeyboardControl(inputlistener, cubeptr[0]);
 
 	stbtt_fontinfo font;
-    fread(ttf_buffer, 1, (1<<25), fopen("ARIALUNI.TTF", "rb"));
+    fread(ttf_buffer, 1, (1<<25), fopen("c:/windows/fonts/ARIALUNI.TTF", "rb"));
 	stbtt_InitFont(&font, ttf_buffer, stbtt_GetFontOffsetForIndex(ttf_buffer,0));
 
 	//attack on titan !!!
@@ -140,46 +108,20 @@ void InitResources()
     }
 }
 
-void InputControl(double frameTime)
-{
 
-    if(inputListener->forward)
-    {
-        camera.position += camera.lookat * cameraMoveSpeed * frameTime / 1000.f;
-    }
-    if(inputListener->backward)
-    {
-        camera.position -= camera.lookat * cameraMoveSpeed * frameTime / 1000.f;
-    }
-    if(inputListener->right)
-    {
-        camera.position += camera.right * cameraMoveSpeed * frameTime / 1000.f;
-    }
-    if(inputListener->left)
-    {
-        camera.position -= camera.right * cameraMoveSpeed * frameTime / 1000.f;
-    }
 
-    if(inputListener->mouseControl)
-    {
-        Matrix3x3 head = Matrix3x3::RotateAxis(camera.up, -inputListener->rx * cameraTurnSpeed * frameTime / 1000.f);
-        camera.lookat = head * camera.lookat;
-        camera.right = head *  camera.right;
 
-        Matrix3x3 pitch = Matrix3x3::RotateAxis(camera.right, -inputListener->ry * cameraTurnSpeed * frameTime / 1000.f);
-        camera.lookat = pitch * camera.lookat;
-        camera.up = pitch *  camera.up;
 
-        //make sure right is horizontal
-        camera.right.z = 0;
-        camera.right.Normalize();
-        camera.lookat = cross(camera.up, camera.right);
-		camera.lookat.Normalize();
-        camera.up = cross(camera.right, camera.lookat);
-    }
+void RenderFPS(float frametime){
 
-    inputListener->ClearState();
+	//sprintf(FPSstr,"%f.1",frametime);
+
+
+
+
+
 }
+
 
 void RenderAttackOnTitan()
 {
@@ -256,42 +198,51 @@ void Render(double frameTime)
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glUseProgram(shaderProgram);
-	GLint positionAttributeLocation = glGetAttribLocation(shaderProgram, "position");
-	GLint colorAttributeLocation = glGetAttribLocation(shaderProgram, "color");
+	//GLint positionAttributeLocation = glGetAttribLocation(shaderProgram, "position");
+	//GLint colorAttributeLocation = glGetAttribLocation(shaderProgram, "color");
 
-	GLint modelMatLocation = glGetUniformLocation(shaderProgram, "modelMatrix");
+	//GLint modelMatLocation = glGetUniformLocation(shaderProgram, "modelMatrix");
 	GLint viewMatLocation = glGetUniformLocation(shaderProgram, "viewMatrix");
 	GLint projectionMatLocation = glGetUniformLocation(shaderProgram, "projectionMatrix");
-	GLint cubeColorLocation = glGetUniformLocation(shaderProgram, "cubeColor");
+	//GLint cubeColorLocation = glGetUniformLocation(shaderProgram, "cubeColor");
 
     Matrix4x4 viewMatrix = camera.ViewMatrix();
     Matrix4x4 projectionMatrix = camera.SimplePerspective();
-	Vector3 cubeColor(1, 1, 1);
+	//Vector3 cubeColor(1, 1, 1);
 
 	glUniformMatrix4fv(viewMatLocation, 1, GL_TRUE, viewMatrix.FloatPtr());
 	glUniformMatrix4fv(projectionMatLocation, 1, GL_TRUE, projectionMatrix.FloatPtr() );
-	glUniform3fv(cubeColorLocation, 1, &cubeColor[0]);
+	//glUniform3fv(cubeColorLocation, 1, &cubeColor[0]);
 
-	glBindBuffer(GL_ARRAY_BUFFER, boxVertexBuffer);
-	glEnableVertexAttribArray(positionAttributeLocation);
-	glVertexAttribPointer(positionAttributeLocation, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, 0);
-	glEnableVertexAttribArray(colorAttributeLocation);
-	glVertexAttribPointer(colorAttributeLocation, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, (GLvoid*)(sizeof(float) * 3));
+	//glBindBuffer(GL_ARRAY_BUFFER, boxVertexBuffer);
+	//glEnableVertexAttribArray(positionAttributeLocation);
+	//glVertexAttribPointer(positionAttributeLocation, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, 0);
+	//glEnableVertexAttribArray(colorAttributeLocation);
+	//glVertexAttribPointer(colorAttributeLocation, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, (GLvoid*)(sizeof(float) * 3));
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, boxIndexBuffer);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, boxIndexBuffer);
 
-	//draw first box
-	Matrix4x4 modelMatrix = Translate(Vector3(-4, -1.8, 0) ) * Scale(Vector3(1, 1, 1));
-	glUniformMatrix4fv(modelMatLocation, 1, GL_TRUE, modelMatrix.FloatPtr());
-	glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, 0);
+	////draw first box
+	//Matrix4x4 modelMatrix = Translate(Vector3(-4, -1.8, 0) ) * Scale(Vector3(1, 1, 1));
+	//glUniformMatrix4fv(modelMatLocation, 1, GL_TRUE, modelMatrix.FloatPtr());
+	//glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, 0);
 
-	//draw second box
-	modelMatrix = Translate(Vector3(-5, 1.8, 0) ) * Scale(Vector3(1.5, 1.5, 1.5));
-	glUniformMatrix4fv(modelMatLocation, 1, GL_TRUE, modelMatrix.FloatPtr());
-	glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, 0);
+	////draw second box
+	//modelMatrix = Translate(Vector3(-5, 1.8, 0) ) * Scale(Vector3(1.5, 1.5, 1.5));
+	//glUniformMatrix4fv(modelMatLocation, 1, GL_TRUE, modelMatrix.FloatPtr());
+	//glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, 0);
 
 	//attack on titan!!!
-	RenderAttackOnTitan();
+	//RenderAttackOnTitan();
+
+	mousecontrolptr->MouseControlRender();
+
+	keyboardcontrol->KeyboardControlRender();
+
+	circleptr->Render();
+	axisptr->Render();
+	cubeptr[0]->Render();
+	cubeptr[1]->Render();
 
 	SwapBuffers(window.hdc);
 
@@ -304,9 +255,6 @@ void main()
 	if(!InitWindow(800, 800, window))
 		return;
 
-    inputListener = new MyInputListener();
-    SetInputListener(inputListener);
-
 	if(!InitGL(window.hwnd, 4))
 		return;
 
@@ -314,21 +262,20 @@ void main()
 
     FastTimer timer;
 
+    timer.Start();
 	MSG msg = {0};
 	while( WM_QUIT != msg.message )
 	{
-		timer.Start();
 		if( PeekMessage( &msg, NULL, 0, 0, PM_REMOVE ) )
 			//if( GetMessage( &msg, NULL, 0, 0 ) )
 		{
 			TranslateMessage( &msg );
 			DispatchMessage( &msg );
 		}
-        InputControl(frameTime);
-        Render(frameTime);
 
-		timer.End();
-		frameTime = timer.GetDurationInMillisecnds();
+		Render(frameTime);
+
 	}
-
+    timer.End();
+    frameTime = timer.GetDurationInMillisecnds();
 }
